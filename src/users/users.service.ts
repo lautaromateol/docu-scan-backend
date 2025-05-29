@@ -11,7 +11,7 @@ export class UsersService {
     const validation = CreateUserObject.safeParse(user);
 
     if (!validation.success) {
-      throw new BadRequestException('Some fields are missing on your request.');
+      throw new BadRequestException({ errors: validation.error.issues, statusCode: 400 });
     }
 
     const userWithEmail = await this.prismaService.user.findUnique({
@@ -40,7 +40,7 @@ export class UsersService {
   async findUserByEmail(email: string) {
     const user = await this.prismaService.user.findUnique({
       where: {
-        email: email,
+        email,
       },
     });
 
