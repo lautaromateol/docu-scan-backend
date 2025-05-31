@@ -106,7 +106,11 @@ export class UsersService {
       },
     });
 
-    return dbUser;
+    return {
+      success: true,
+      user,
+      statusCode: 200
+    };
   }
 
   async findUserByEmail(email: string) {
