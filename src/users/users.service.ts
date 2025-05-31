@@ -108,7 +108,7 @@ export class UsersService {
 
     return {
       success: true,
-      user,
+      user: dbUser,
       statusCode: 200
     };
   }
