@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { CreateUser, CreateUserObject } from './types/create-user';
 import { SignInUser, SignInUserObject } from './types/sign-in-user';
+import { UpdateUser, UpdateUserObject } from './types/update-user';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -17,14 +18,38 @@ export class UsersService {
     private jwtService: JwtService,
   ) {}
 
+  async updateUser({ user, userId }: { user: UpdateUser; userId: string }) {
+    const validation = UpdateUserObject.safeParse(user);
+
+    if (!validation.success) {
+      throw new BadRequestException({
+        errors: validation.error.issues,
+        statusCode: 400,
+      });
+    }
+
+    const updatedUser = await this.prismaService.user.update({
+      where: { id: userId },
+      data: {
+        ...user,
+      },
+    });
+
+    return {
+      success: true,
+      user: updatedUser,
+      statusCode: 200,
+    };
+  }
+
   async getUser(userId: string) {
     const user = await this.prismaService.user.findFirst({
       where: {
-        id: userId
-      }
-    })
+        id: userId,
+      },
+    });
 
-    return user
+    return user;
   }
 
   async signInUser(user: SignInUser) {
@@ -119,7 +144,7 @@ export class UsersService {
     return {
       success: true,
       user: dbUser,
-      statusCode: 200
+      statusCode: 200,
     };
   }
 
