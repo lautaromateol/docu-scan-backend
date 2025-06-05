@@ -1,4 +1,4 @@
-import { Controller, HttpCode, Post } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, Post } from "@nestjs/common";
 import { CreateWorkspace } from "./types/create-workspace";
 import { WorkspacesService } from "./workspaces.service";
 
@@ -8,7 +8,7 @@ export class WorkspacesController {
 
   @Post()
   @HttpCode(201)
-  createWorkspace(workspace: CreateWorkspace) {
+  createWorkspace(@Body() workspace: CreateWorkspace) {
     return this.worskpacesService.createWorkspace(workspace)
   }
 }
