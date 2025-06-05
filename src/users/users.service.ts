@@ -17,6 +17,16 @@ export class UsersService {
     private jwtService: JwtService,
   ) {}
 
+  async getUser(userId: string) {
+    const user = await this.prismaService.user.findFirst({
+      where: {
+        id: userId
+      }
+    })
+
+    return user
+  }
+
   async signInUser(user: SignInUser) {
     const validation = SignInUserObject.safeParse(user);
 
