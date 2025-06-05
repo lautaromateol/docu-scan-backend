@@ -1,14 +1,26 @@
-import { Body, Controller, Get, HttpCode, Post } from "@nestjs/common";
-import { CreateWorkspace } from "./types/create-workspace";
-import { WorkspacesService } from "./workspaces.service";
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
+import { WorkspacesService } from './workspaces.service';
+import { AuthGuard } from '../auth/guards/auth.guard';
 
-@Controller("workspaces")
+@Controller('workspaces')
 export class WorkspacesController {
   constructor(private readonly worskpacesService: WorkspacesService) {}
 
+  @UseGuards(AuthGuard)
   @Post()
   @HttpCode(201)
-  createWorkspace(@Body() workspace: CreateWorkspace) {
-    return this.worskpacesService.createWorkspace(workspace)
+  createWorkspace(@Body() workspace: { name: string }, @Request() request) {
+    return this.worskpacesService.createWorkspace({
+      ...workspace,
+      userId: request.user.id,
+    });
   }
 }
