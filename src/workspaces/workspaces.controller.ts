@@ -1,14 +1,19 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
+  Param,
   Post,
+  Put,
   Request,
   UseGuards,
 } from '@nestjs/common';
 import { WorkspacesService } from './workspaces.service';
 import { AuthGuard } from '../auth/guards/auth.guard';
+import { CreateWorkspace } from './types/create-workspace';
+import { UpdateWorkspace } from './types/update-workspace';
 
 @Controller('workspaces')
 export class WorkspacesController {
@@ -17,9 +22,24 @@ export class WorkspacesController {
   @UseGuards(AuthGuard)
   @Post()
   @HttpCode(201)
-  createWorkspace(@Body() workspace: { name: string }, @Request() request) {
+  createWorkspace(@Body() workspace: CreateWorkspace, @Request() request) {
     return this.worskpacesService.createWorkspace({
-      ...workspace,
+      workspace,
+      userId: request.user.id,
+    });
+  }
+
+  @UseGuards(AuthGuard)
+  @Put(':id')
+  @HttpCode(200)
+  updateWorkspace(
+    @Param('id') id: string,
+    @Body() workspace: UpdateWorkspace,
+    @Request() request,
+  ) {
+    return this.worskpacesService.updateWorkspace({
+      workspace,
+      workspaceId: id,
       userId: request.user.id,
     });
   }
