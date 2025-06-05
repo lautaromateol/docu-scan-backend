@@ -6,6 +6,14 @@ import { CreateMember, CreateMemberObject } from "./types/create-member";
 export class MembersService {
   constructor(private prismaService: PrismaService) {}
 
+  async getMember(userId: string) {
+    const member = await this.prismaService.member.findFirst({
+      where: { userId }
+    })
+
+    return member
+  }
+
   async createMember(member: CreateMember) {
     const validation = CreateMemberObject.safeParse(member)
 
@@ -19,7 +27,8 @@ export class MembersService {
     const dbMember = await this.prismaService.member.create({
       data: {
         userId: member.userId,
-        workspaceId: member.workspaceId
+        workspaceId: member.workspaceId,
+        role: member.role
       }
     })
 
