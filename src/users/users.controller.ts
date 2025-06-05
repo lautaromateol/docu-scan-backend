@@ -1,21 +1,28 @@
 import {
+  Body,
   Controller,
   Delete,
   Get,
-  Param,
-  Post,
+  Put,
   Request,
   UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { AuthGuard } from 'src/auth/guards/auth.guard';
+import { UpdateUser } from './types/update-user';
+import { AuthGuard } from '../auth/guards/auth.guard';
 
 @Controller('users')
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
   @UseGuards(AuthGuard)
-  @Get('user-info')
+  @Put('update-user')
+  updateUser(@Body() user: UpdateUser, @Request() request) {
+    return this.usersService.updateUser({ user, userId: request.user.id });
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('get-user')
   getUser(@Request() request) {
     return this.usersService.getUser(request.user.id);
   }
