@@ -22,8 +22,14 @@ model Workspace {
   Member Member[]
 }
 
+enum Role {
+  MEMBER
+  ADMIN
+}
+
 model Member {
   id          String    @id @default(uuid())
+  role        Role
   userId      String
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   workspaceId String
