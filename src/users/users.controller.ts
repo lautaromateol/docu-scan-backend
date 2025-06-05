@@ -20,8 +20,9 @@ export class UsersController {
     return this.usersService.getUser(request.user.id);
   }
 
-  @Delete(':id')
-  deleteUser(@Param('id') id: string) {
-    return this.usersService.deleteUser(id);
+  @UseGuards(AuthGuard)
+  @Delete('delete-user')
+  deleteUser(@Request() request) {
+    return this.usersService.deleteUser(request.user.id);
   }
 }
