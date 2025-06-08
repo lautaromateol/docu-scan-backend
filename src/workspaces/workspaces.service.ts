@@ -21,6 +21,30 @@ export class WorkspacesService {
     private membersService: MembersService,
   ) {}
 
+  async deleteWorkspace({
+    workspaceId,
+    userId,
+  }: {
+    workspaceId: string;
+    userId: string;
+  }) {
+    const member = await this.membersService.getMember(userId)
+
+    if(!member || member.role !== "ADMIN") {
+      throw new UnauthorizedException()
+    }
+
+    const deletedWorkspace = await this.prismaService.workspace.delete({
+      where: { id: workspaceId }
+    })
+
+    return { 
+      success: true,
+      workspace: deletedWorkspace,
+      statusCode: 200
+     }
+  }
+
   async updateWorkspace({
     workspace,
     workspaceId,
