@@ -13,6 +13,7 @@ import {
   UpdateWorkspace,
   UpdateWorkspaceObject,
 } from './types/update-workspace';
+import { generateInviteCode } from 'lib/utils';
 
 @Injectable()
 export class WorkspacesService {
@@ -104,6 +105,7 @@ export class WorkspacesService {
     const dbWorkspace = await this.prismaService.workspace.create({
       data: {
         name: workspace.name,
+        inviteCode: generateInviteCode(10)
       },
     });
 
