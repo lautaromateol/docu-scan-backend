@@ -43,4 +43,14 @@ export class WorkspacesController {
       userId: request.user.id,
     });
   }
+
+  @UseGuards(AuthGuard)
+  @Delete(':id')
+  @HttpCode(200)
+  deleteWorkspace(@Param('id') id: string, @Request() request) {
+    return this.worskpacesService.deleteWorkspace({
+      workspaceId: id,
+      userId: request.user.id,
+    });
+  }
 }
