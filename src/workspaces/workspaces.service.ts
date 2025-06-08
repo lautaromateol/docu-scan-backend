@@ -23,6 +23,24 @@ export class WorkspacesService {
     private membersService: MembersService,
   ) {}
 
+  async getAllWorkspaces(userId: string) {
+    const workspaces = await this.prismaService.workspace.findMany({
+      where: {
+        Member: {
+          some: {
+            userId
+          }
+        }
+      }
+    });
+
+    return {
+      success: true,
+      workspaces,
+      statusCode: 200,
+    };
+  }
+
   async joinWorkspace({
     userId,
     inviteCode,
@@ -30,25 +48,27 @@ export class WorkspacesService {
     userId: string;
     inviteCode: string;
   }) {
-
     const workspace = await this.prismaService.workspace.findFirst({
       where: {
-        inviteCode
-      }
-    })
+        inviteCode,
+      },
+    });
 
-    if(!workspace || (workspace.inviteCode !== inviteCode)) {
-      throw new UnauthorizedException("This invite code is invalid.")
+    if (!workspace || workspace.inviteCode !== inviteCode) {
+      throw new UnauthorizedException('This invite code is invalid.');
     }
-    
-    const member = await this.membersService.getMember({ userId, workspaceId: workspace.id })
 
-    if(member) {
+    const member = await this.membersService.getMember({
+      userId,
+      workspaceId: workspace.id,
+    });
+
+    if (member) {
       return {
         success: true,
         statusCode: 200,
-        message: "This user is already a workspace member."
-      }
+        message: 'This user is already a workspace member.',
+      };
     }
 
     await this.membersService.createMember({
@@ -58,9 +78,9 @@ export class WorkspacesService {
     });
 
     return {
-      success: true, 
-      statusCode: 200
-    }
+      success: true,
+      statusCode: 200,
+    };
   }
 
   async deleteWorkspace({
