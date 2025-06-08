@@ -17,9 +17,10 @@ model User {
 }
 
 model Workspace {
-  id     String   @id @default(uuid())
-  name   String
-  Member Member[]
+  id         String   @id @default(uuid())
+  name       String
+  inviteCode String
+  Member     Member[]
 }
 
 enum Role {
