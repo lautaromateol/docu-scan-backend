@@ -20,6 +20,13 @@ export class WorkspacesController {
   constructor(private readonly worskpacesService: WorkspacesService) {}
 
   @UseGuards(AuthGuard)
+  @Get()
+  @HttpCode(200)
+  getAllWorkspaces(@Request() request) {
+    return this.worskpacesService.getAllWorkspaces(request.user.id)
+  }
+
+  @UseGuards(AuthGuard)
   @Post()
   @HttpCode(201)
   createWorkspace(@Body() workspace: CreateWorkspace, @Request() request) {
