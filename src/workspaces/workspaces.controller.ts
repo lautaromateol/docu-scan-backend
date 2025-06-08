@@ -53,4 +53,11 @@ export class WorkspacesController {
       userId: request.user.id,
     });
   }
+
+  @UseGuards(AuthGuard)
+  @Post("join/:inviteCode")
+  @HttpCode(200)
+  joinWorkspace(@Param("inviteCode") inviteCode: string, @Request() request) {
+    return this.worskpacesService.joinWorkspace({ inviteCode, userId: request.user.id })
+  }
 }
