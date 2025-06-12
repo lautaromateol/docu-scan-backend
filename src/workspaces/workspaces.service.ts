@@ -23,15 +23,41 @@ export class WorkspacesService {
     private membersService: MembersService,
   ) {}
 
+  async getWorkspace({
+    workspaceId,
+    userId,
+  }: {
+    workspaceId: string;
+    userId: string;
+  }) {
+    const member = await this.membersService.getMember({ userId, workspaceId })
+
+    if(!member) {
+      throw new UnauthorizedException()
+    }
+
+    const workspace = await this.prismaService.workspace.findFirst({
+      where: {
+        id: workspaceId
+      }
+    })
+
+    return {
+      success: true,
+      workspace,
+      statusCode: 200
+    }
+  }
+
   async getAllWorkspaces(userId: string) {
     const workspaces = await this.prismaService.workspace.findMany({
       where: {
         Member: {
           some: {
-            userId
-          }
-        }
-      }
+            userId,
+          },
+        },
+      },
     });
 
     return {

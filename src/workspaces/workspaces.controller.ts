@@ -23,7 +23,17 @@ export class WorkspacesController {
   @Get()
   @HttpCode(200)
   getAllWorkspaces(@Request() request) {
-    return this.worskpacesService.getAllWorkspaces(request.user.id)
+    return this.worskpacesService.getAllWorkspaces(request.user.id);
+  }
+
+  @UseGuards(AuthGuard)
+  @Get(':id')
+  @HttpCode(200)
+  getWorkspace(@Param('id') id: string, @Request() request) {
+    return this.worskpacesService.getWorkspace({
+      workspaceId: id,
+      userId: request.user.id,
+    });
   }
 
   @UseGuards(AuthGuard)
@@ -62,9 +72,12 @@ export class WorkspacesController {
   }
 
   @UseGuards(AuthGuard)
-  @Post("join/:inviteCode")
+  @Post('join/:inviteCode')
   @HttpCode(200)
-  joinWorkspace(@Param("inviteCode") inviteCode: string, @Request() request) {
-    return this.worskpacesService.joinWorkspace({ inviteCode, userId: request.user.id })
+  joinWorkspace(@Param('inviteCode') inviteCode: string, @Request() request) {
+    return this.worskpacesService.joinWorkspace({
+      inviteCode,
+      userId: request.user.id,
+    });
   }
 }
