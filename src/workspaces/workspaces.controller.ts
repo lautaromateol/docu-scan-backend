@@ -26,6 +26,12 @@ export class WorkspacesController {
     return this.worskpacesService.getAllWorkspaces(request.user.id);
   }
 
+  @Get('workspace-info/:inviteCode')
+  @HttpCode(200)
+  getWorkspaceInfo(@Param('inviteCode') inviteCode: string) {
+    return this.worskpacesService.getWorkspaceByInviteCode({ inviteCode });
+  }
+
   @UseGuards(AuthGuard)
   @Get(':id')
   @HttpCode(200)
