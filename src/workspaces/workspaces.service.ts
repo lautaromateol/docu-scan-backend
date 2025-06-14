@@ -23,6 +23,24 @@ export class WorkspacesService {
     private membersService: MembersService,
   ) {}
 
+  async getWorkspaceByInviteCode({ inviteCode }: { inviteCode: string }) {
+    const workspace = await this.prismaService.workspace.findFirst({
+      where: {
+        inviteCode,
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+
+    return {
+      success: true,
+      statusCode: 200,
+      workspace,
+    };
+  }
+
   async getWorkspace({
     workspaceId,
     userId,
@@ -30,23 +48,23 @@ export class WorkspacesService {
     workspaceId: string;
     userId: string;
   }) {
-    const member = await this.membersService.getMember({ userId, workspaceId })
+    const member = await this.membersService.getMember({ userId, workspaceId });
 
-    if(!member) {
-      throw new UnauthorizedException()
+    if (!member) {
+      throw new UnauthorizedException();
     }
 
     const workspace = await this.prismaService.workspace.findFirst({
       where: {
-        id: workspaceId
-      }
-    })
+        id: workspaceId,
+      },
+    });
 
     return {
       success: true,
       workspace,
-      statusCode: 200
-    }
+      statusCode: 200,
+    };
   }
 
   async getAllWorkspaces(userId: string) {
@@ -119,7 +137,7 @@ export class WorkspacesService {
     const member = await this.membersService.getMember({ workspaceId, userId });
 
     if (!member || member.role !== 'ADMIN') {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException("You are not authorized to delete this workspace.");
     }
 
     const deletedWorkspace = await this.prismaService.workspace.delete({
@@ -154,7 +172,7 @@ export class WorkspacesService {
     const member = await this.membersService.getMember({ workspaceId, userId });
 
     if (!member || member.role !== 'ADMIN') {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException("You are not authorized to update this workspace.");
     }
 
     const dbWorkspace = await this.prismaService.workspace.update({
