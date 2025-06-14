@@ -205,7 +205,7 @@ export class WorkspacesService {
     return {
       success: true,
       workspace: dbWorkspace,
-      statusCode: 200,
+      statusCode: 201,
     };
   }
 }
