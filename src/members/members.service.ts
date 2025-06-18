@@ -1,10 +1,32 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Response, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateMember, CreateMemberObject } from './types/create-member';
 
 @Injectable()
 export class MembersService {
   constructor(private prismaService: PrismaService) {}
+
+  async getMembers({ workspaceId }: { workspaceId: string }) {
+    const members = await this.prismaService.member.findMany({
+      where: {
+        workspaceId,
+      },
+      include: {
+        user: {
+          select: {
+            email: true,
+            name: true,
+            pictureUrl: true,
+          },
+        },
+      },
+    });
+
+    return {
+      statusCode: 200,
+      members,
+    };
+  }
 
   async getMember({
     workspaceId,
@@ -39,5 +61,32 @@ export class MembersService {
     });
 
     return dbMember;
+  }
+
+  async deleteMember({
+    workspaceId,
+    memberId,
+    userId
+  }: {
+    workspaceId: string;
+    memberId: string;
+    userId: string;
+  }) {
+    const member = await this.getMember({ userId, workspaceId })
+
+    if(!member || member.role !== "ADMIN") {
+      throw new UnauthorizedException("You are not authorized to remove this member from the workspace.")
+    }
+
+    const deletedMember = await this.prismaService.member.delete({
+      where: {
+        id: memberId
+      }
+    })
+    
+    return {
+      statusCode: 200,
+      member: deletedMember
+    }
   }
 }
