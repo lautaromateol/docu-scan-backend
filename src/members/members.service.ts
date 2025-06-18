@@ -1,10 +1,46 @@
-import { BadRequestException, Injectable, Response, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateMember, CreateMemberObject } from './types/create-member';
 
 @Injectable()
 export class MembersService {
   constructor(private prismaService: PrismaService) {}
+
+  async updateMemberRole({
+    workspaceId,
+    userId,
+    memberId,
+  }: {
+    workspaceId: string;
+    userId: string;
+    memberId: string;
+  }) {
+    const member = await this.getMember({ workspaceId, userId });
+
+    if (!member || member.role !== 'ADMIN') {
+      throw new UnauthorizedException(
+        'You are not authorized to perform this action.',
+      );
+    }
+
+    const newMember = await this.prismaService.member.update({
+      where: {
+        id: memberId,
+      },
+      data: {
+        role: 'ADMIN',
+      },
+    });
+
+    return {
+      statusCode: 200,
+      member: newMember,
+    };
+  }
 
   async getMembers({ workspaceId }: { workspaceId: string }) {
     const members = await this.prismaService.member.findMany({
@@ -66,27 +102,29 @@ export class MembersService {
   async deleteMember({
     workspaceId,
     memberId,
-    userId
+    userId,
   }: {
     workspaceId: string;
     memberId: string;
     userId: string;
   }) {
-    const member = await this.getMember({ userId, workspaceId })
+    const member = await this.getMember({ userId, workspaceId });
 
-    if(!member || member.role !== "ADMIN") {
-      throw new UnauthorizedException("You are not authorized to remove this member from the workspace.")
+    if (!member || member.role !== 'ADMIN') {
+      throw new UnauthorizedException(
+        'You are not authorized to remove this member from the workspace.',
+      );
     }
 
     const deletedMember = await this.prismaService.member.delete({
       where: {
-        id: memberId
-      }
-    })
-    
+        id: memberId,
+      },
+    });
+
     return {
       statusCode: 200,
-      member: deletedMember
-    }
+      member: deletedMember,
+    };
   }
 }
