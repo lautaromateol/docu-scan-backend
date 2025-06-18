@@ -4,6 +4,7 @@ import {
   Get,
   HttpCode,
   Param,
+  Put,
   Query,
   Request,
   UseGuards,
@@ -30,8 +31,22 @@ export class MembersController {
     @Query('workspaceId') workspaceId: string,
     @Request() request,
   ) {
-
     return this.membersService.deleteMember({
+      workspaceId,
+      memberId,
+      userId: request.user.id,
+    });
+  }
+
+  @UseGuards(AuthGuard)
+  @Put(':memberId')
+  @HttpCode(200)
+  updateMemberRole(
+    @Param('memberId') memberId: string,
+    @Query('workspaceId') workspaceId: string,
+    @Request() request,
+  ) {
+    return this.membersService.updateMemberRole({
       workspaceId,
       memberId,
       userId: request.user.id,
