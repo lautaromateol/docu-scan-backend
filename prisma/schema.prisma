@@ -36,3 +36,20 @@ model Member {
   workspaceId String
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 }
+
+enum ContractCategory {
+  TRANSFER
+  USE
+  SERVICES
+  GUARANTEE
+  COLABORATION
+}
+
+model Contract {
+  id                  String              @id @default(uuid())
+  title               String
+  category            ContractCategory
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+}
+
