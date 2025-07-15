@@ -45,11 +45,94 @@ enum ContractCategory {
   COLABORATION
 }
 
-model Contract {
-  id                  String              @id @default(uuid())
-  title               String
-  category            ContractCategory
-  createdAt           DateTime            @default(now())
-  updatedAt           DateTime            @updatedAt
+enum ContractStatus {
+  DRAFT
+  SIGNED
+  EXPIRED
+  TERMINATED
 }
 
+enum ObligationType {
+  PRIMARY
+  ACCESSORY
+  CONDITIONAL
+  RECURRING
+}
+
+enum ClauseType {
+  GENERAL
+  CONFIDENTIALITY
+  PENALTY
+  JURISDICTION
+  OTHER
+}
+
+model Contract {
+  id                 String           @id @default(uuid())
+  title              String
+  category           ContractCategory
+  descriptionSummary String?
+  jurisdiction       String?
+  governingLaw       String?
+  signingDate        DateTime?
+  startDate          DateTime?
+  endDate            DateTime?
+  status             ContractStatus   @default(DRAFT)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  parties            ContractParty[]     @relation("ContractToParties")
+  obligations        Obligation[]        @relation("ContractToObligations")
+  terminationClauses TerminationClause[] @relation("ContractToTerminationClauses")
+  deadlines          ContractDeadline[]  @relation("ContractToDeadlines")
+  clauses            ContractClause[]    @relation("ContractToClauses")
+}
+
+model ContractParty {
+  id          String       @id @default(uuid())
+  contract    Contract     @relation("ContractToParties", fields: [contractId], references: [id], onDelete: Cascade)
+  contractId  String
+  name        String
+  identifier  String?
+  role        String
+  obligations Obligation[] @relation("PartyToObligations")
+}
+
+model Obligation {
+  id          String         @id @default(uuid())
+  contract    Contract       @relation("ContractToObligations", fields: [contractId], references: [id], onDelete: Cascade)
+  contractId  String
+  party       ContractParty? @relation("PartyToObligations", fields: [partyId], references: [id])
+  partyId     String?
+  description String
+  type        ObligationType
+  dueDate     DateTime?
+  recurrence  String?
+}
+
+model TerminationClause {
+  id               String   @id @default(uuid())
+  contract         Contract @relation("ContractToTerminationClauses", fields: [contractId], references: [id], onDelete: Cascade)
+  contractId       String
+  description      String
+  cause            String
+  noticePeriodDays Int?
+}
+
+model ContractDeadline {
+  id          String   @id @default(uuid())
+  contract    Contract @relation("ContractToDeadlines", fields: [contractId], references: [id], onDelete: Cascade)
+  contractId  String
+  description String
+  date        DateTime
+  type        String
+}
+
+model ContractClause {
+  id         String     @id @default(uuid())
+  contract   Contract   @relation("ContractToClauses", fields: [contractId], references: [id], onDelete: Cascade)
+  contractId String
+  title      String
+  bodyText   String
+  clauseType ClauseType
+}
