@@ -28,6 +28,8 @@
     "@nestjs/swagger": "^11.2.0",
     "@prisma/client": "^6.8.2",
     "bcryptjs": "^3.0.2",
+    "date-fns": "^4.1.0",
+    "groq-sdk": "^0.27.0",
     "mammoth": "^1.9.1",
     "multer": "^2.0.1",
     "pdf-parse": "^1.1.1",
