@@ -17,10 +17,11 @@ model User {
 }
 
 model Workspace {
-  id         String   @id @default(uuid())
+  id         String     @id @default(uuid())
   name       String
   inviteCode String
   Member     Member[]
+  Contract   Contract[]
 }
 
 enum Role {
@@ -69,6 +70,8 @@ enum ClauseType {
 
 model Contract {
   id                 String           @id @default(uuid())
+  workspace          Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId        String
   title              String
   category           ContractCategory
   descriptionSummary String?
