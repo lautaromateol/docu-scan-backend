@@ -1,19 +1,20 @@
 import * as pdfParse from 'pdf-parse';
 import * as mammoth from 'mammoth';
+import { z } from 'zod';
+import { Groq } from 'groq-sdk';
 import { extname } from 'path';
 import { LLM_CONFIG } from 'config/llm.config';
-import { z } from 'zod';
 import {
   BadRequestException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
   UnsupportedMediaTypeException,
 } from '@nestjs/common';
-import { Groq } from 'groq-sdk';
 import { PrismaService } from '../prisma/prisma.service';
 import { ContractSchema } from './types/create-contract';
-import { normalizeContractData, parseJsonFromLlmResponse } from 'lib/utils';
 import { MembersService } from '../members/members.service';
+import { normalizeContractData, parseJsonFromLlmResponse } from 'lib/utils';
 
 @Injectable()
 export class ContractsService {
@@ -25,6 +26,55 @@ export class ContractsService {
     private prismaService: PrismaService,
     private membersService: MembersService,
   ) {}
+
+  async getContract({
+    workspaceId,
+    userId,
+    id,
+  }: {
+    workspaceId: string;
+    userId: string;
+    id: string;
+  }) {
+    const member = await this.membersService.getMember({ workspaceId, userId });
+
+    if (!member) {
+      throw new UnauthorizedException();
+    }
+
+    const contract = await this.prismaService.contract.findFirst({
+      where: {
+        id,
+      },
+      include: {
+        clauses: true,
+        deadlines: true,
+        parties: true,
+        terminationClauses: true,
+      },
+    });
+
+    const obligations = await this.prismaService.obligation.findMany({
+      where: {
+        contractId: id,
+      },
+      include: {
+        party: true,
+      },
+    });
+
+    if (!contract) {
+      throw new NotFoundException();
+    }
+
+    return {
+      statusCode: 200,
+      contract: {
+        ...contract,
+        obligations,
+      },
+    };
+  }
 
   async getContracts({
     workspaceId,
@@ -125,64 +175,6 @@ export class ContractsService {
       workspaceId,
     });
     return result;
-  }
-
-  private buildPrompt(contractText: string): string {
-    return `Se te proporciona el texto completo de un contrato. Devuelve solamente un objeto JSON con la estructura exacta que te voy a proporcionar. No devuelvas nada mas que el JSON:
-
-{
-  "title": string,
-  "category": one of ["TRANSFER", "USE", "SERVICES", "GUARANTEE", "COLABORATION"],
-  "status": one of ["DRAFT", "SIGNED", "EXPIRED", "TERMINATED"],
-  "descriptionSummary": string,
-  "jurisdiction": string | null,
-  "governingLaw": string | null,
-  "signingDate": ISO 8601 date | null,
-  "startDate": ISO 8601 date | null,
-  "endDate": ISO 8601 date | null,
-  "parties": [
-    {
-      "name": string,
-      "identifier": string | null,
-      "role": string
-    }
-  ],
-  "obligations": [
-    {
-      "partyName": string (must match a party.name),
-      "description": string,
-      "type": one of ["PRIMARY", "ACCESSORY", "CONDITIONAL", "RECURRING"],
-      "dueDate": ISO 8601 date | null,
-      "recurrence": string | null
-    }
-  ],
-  "terminationClauses": [
-    {
-      "description": string,
-      "cause": string,
-      "noticePeriodDays": integer | null
-    }
-  ],
-  "deadlines": [
-    {
-      "description": string,
-      "date": ISO 8601 date,
-      "type": string
-    }
-  ],
-  "clauses": [
-    {
-      "title": string,
-      "bodyText": string,
-      "clauseType": one of ["GENERAL", "CONFIDENTIALITY", "PENALTY", "JURISDICTION", "OTHER"]
-    }
-  ]
-}
-
-Texto del contrato:
----
-${contractText}
----`;
   }
 
   async createContract({
@@ -305,5 +297,63 @@ ${contractText}
     }
 
     return text;
+  }
+
+  private buildPrompt(contractText: string): string {
+    return `Se te proporciona el texto completo de un contrato. Devuelve solamente un objeto JSON con la estructura exacta que te voy a proporcionar. No devuelvas nada mas que el JSON:
+
+{
+  "title": string,
+  "category": one of ["TRANSFER", "USE", "SERVICES", "GUARANTEE", "COLABORATION"],
+  "status": one of ["DRAFT", "SIGNED", "EXPIRED", "TERMINATED"],
+  "descriptionSummary": string,
+  "jurisdiction": string | null,
+  "governingLaw": string | null,
+  "signingDate": ISO 8601 date | null,
+  "startDate": ISO 8601 date | null,
+  "endDate": ISO 8601 date | null,
+  "parties": [
+    {
+      "name": string,
+      "identifier": string | null,
+      "role": string
+    }
+  ],
+  "obligations": [
+    {
+      "partyName": string (must match a party.name),
+      "description": string,
+      "type": one of ["PRIMARY", "ACCESSORY", "CONDITIONAL", "RECURRING"],
+      "dueDate": ISO 8601 date | null,
+      "recurrence": string | null
+    }
+  ],
+  "terminationClauses": [
+    {
+      "description": string,
+      "cause": string,
+      "noticePeriodDays": integer | null
+    }
+  ],
+  "deadlines": [
+    {
+      "description": string,
+      "date": ISO 8601 date,
+      "type": string
+    }
+  ],
+  "clauses": [
+    {
+      "title": string,
+      "bodyText": string,
+      "clauseType": one of ["GENERAL", "CONFIDENTIALITY", "PENALTY", "JURISDICTION", "OTHER"]
+    }
+  ]
+}
+
+Texto del contrato:
+---
+${contractText}
+---`;
   }
 }
