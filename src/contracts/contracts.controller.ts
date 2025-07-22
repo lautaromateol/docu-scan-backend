@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   Post,
+  Query,
   Request,
   UploadedFile,
   UseGuards,
@@ -33,6 +34,20 @@ export class ContractsController {
     return this.contractsService.getContracts({
       workspaceId,
       userId: request.user.id,
+    });
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('/contract/:contractId')
+  getContract(
+    @Param('contractId') contractId: string,
+    @Query('workspaceId') workspaceId: string,
+    @Request() request,
+  ) {
+    return this.contractsService.getContract({
+      id: contractId,
+      userId: request.user.id,
+      workspaceId,
     });
   }
 }
