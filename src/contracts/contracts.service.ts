@@ -51,6 +51,7 @@ export class ContractsService {
         deadlines: true,
         parties: true,
         terminationClauses: true,
+        workspace: true
       },
     });
 
